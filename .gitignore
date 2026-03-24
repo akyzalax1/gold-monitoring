@@ -1,0 +1,21 @@
+﻿# Docker
+volumes/
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+.env
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
