@@ -1,11 +1,19 @@
-﻿-- Таблица приборов
+﻿-- Таблица ответственных (должна быть создана первой)
+CREATE TABLE IF NOT EXISTS responsible (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    contact VARCHAR(100)
+);
+
+-- Таблица приборов
 CREATE TABLE IF NOT EXISTS devices (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     location VARCHAR(100),
     device_type VARCHAR(50),
     mqtt_topic VARCHAR(200),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    responsible_id INTEGER REFERENCES responsible(id)
 );
 
 -- Таблица телеметрии
@@ -18,21 +26,13 @@ CREATE TABLE IF NOT EXISTS telemetry (
     quality VARCHAR(20) DEFAULT 'good'
 );
 
--- Индексы
+-- Индексы для ускорения запросов
 CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON telemetry(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_telemetry_device ON telemetry(device_id);
+CREATE INDEX IF NOT EXISTS idx_telemetry_metric ON telemetry(metric);
+CREATE INDEX IF NOT EXISTS idx_devices_name ON devices(name);
 
--- Таблица ответственных
-CREATE TABLE IF NOT EXISTS responsible (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    contact VARCHAR(100)
-);
-
--- Добавляем поле ответственного в devices
-ALTER TABLE devices ADD COLUMN IF NOT EXISTS responsible_id INTEGER REFERENCES responsible(id);
-
--- Тестовый прибор
-INSERT INTO devices (name, location, device_type, mqtt_topic) 
-VALUES ('Wirenboard-1', 'Андат', 'контроллер', 'gold/andat/wirenboard/#')
-ON CONFLICT DO NOTHING;
+-- Тестовый прибор (для отладки)
+INSERT INTO devices (name, location, device_type, mqtt_topic)
+VALUES ('Wirenboard-1', 'Андат', 'контроллер', '/devices/wb-*/controls/#')
+ON CONFLICT ON CONSTRAINT devices_pkey DO NOTHING;

@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   postgres:
     image: postgres:15
     container_name: gold_postgres
@@ -25,14 +23,27 @@ services:
     container_name: gold_mosquitto
     ports:
       - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ./mosquitto/config:/mosquitto/config
-      - mosquitto_data:/mosquitto/data
-      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
+
+  collector:
+    build: ./collector
+    container_name: gold_collector
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      # Поддержка нескольких топиков через запятую (переменная MQTT_TOPICS)
+      MQTT_TOPICS: "/devices/+/controls/#"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: gold_monitoring
+      DB_USER: golduser
+      DB_PASSWORD: goldpass
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
   postgres_data:
-  mosquitto_data:
-  mosquitto_log:
